@@ -1,0 +1,55 @@
+
+```{r}
+acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
+
+pr <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+
+head(acc)
+head(pr)
+
+library("tidyverse")
+```
+
+## Question 1
+Shows that the seventh day of the week is the most hazardous and that corresponds to a Saturday.
+```{r}
+t <- table(acc$DAY_WEEK)
+t
+
+which.max(t)
+```
+
+## Question 2
+
+```{r}
+fatally_hurt <- pr %>% filter(INJ_SEV != 0)
+head(fatally_hurt)
+```
+
+## Question 5
+```{r}
+acc_pr <- full_join(acc, pr)
+head(acc_pr)
+```
+
+
+## Question 6
+It seems the day of the week with the most accidents happens on the seventh day (Saturday) with the six day (Friday) being close behind.
+Next, the hours with the highest amounts of accidents are the 18th hour and the 17th hour. I.e. 5 and 6 o'clock. These hour tend to be when most people begin their way home from work. The least amount of accidents happened during 99 (unknown time). Excluding this we can see the least amount of accidents during a known time is 4 ergo 4am. Most people are asleep at this time. Finally, it shows that men are twice as likely to get into accidents as women are.
+```{r}
+day_week <- table(acc_pr$DAY_WEEK)
+day_week
+
+hour <- table(acc_pr$HOUR)
+hour
+
+sex <- table(acc_pr$SEX)
+sex
+
+ggplot(acc_pr, aes(DAY_WEEK)) + geom_bar(fill="red")
+
+ggplot(acc_pr, aes(HOUR)) + geom_bar(width=0.5, fill="blue")
+
+ggplot(acc_pr, aes(SEX)) + geom_bar()
+```
+
