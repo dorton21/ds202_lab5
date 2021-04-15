@@ -1,9 +1,12 @@
 
 ```{r}
 acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
-pr <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+per <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
 
 library("tidyverse")
+library(maps)
+library(ggrepel)
+library(mapproj)
 ```
 
 ## Question 1
@@ -18,13 +21,44 @@ which.max(t)
 ## Question 2
 
 ```{r}
-fatally_hurt <- pr %>% filter(INJ_SEV != 0)
+fatally_hurt <- per %>% filter(INJ_SEV != 0)
 head(fatally_hurt)
 ```
 
+## Question 3
+```{r}
+mostDang <- per %>% group_by(STATE, MAKE) %>% drop_na %>% select(MAKE, STATE, INJ_SEV) %>% summarise(count=n())%>% group_by(STATE) %>% top_n(1, count)
+head(mostDang)
+```
+
+## Question 4
+```{r}
+GLC <- readxl::read_xlsx('C://Users//caitl//Documents//ds202_lab5//GLC.xlsx')
+str(GLC)
+
+GLC$`State Code` <- as.numeric(GLC$`State Code`)
+
+danger <- left_join(mostDang, GLC, by=c("STATE"="State Code"))%>% select(STATE, MAKE, count, `State Name`)%>% group_by(STATE, `State Name`) %>% distinct()
+danger$`State Name` <- tolower(danger$`State Name`)
+danger
+
+states <- map_data("state")
+head(states)
+states2 <- states %>% group_by(region) %>% summarise(long=mean(long), lat=mean(lat))
+head(states2)
+
+dangerMap <- danger %>% left_join(states2, by=c("State Name"="region"))%>% select(STATE, MAKE, count, `State Name`,long, lat)%>%distinct()
+
+dangerMap
+
+ggplot(data=states, aes(x=long, y=lat))+geom_polygon(aes(group=group), color='white')+coord_map()+geom_label_repel(data=dangerMap, aes(label=MAKE), size=2, max.overlaps=Inf)+xlab("Longitude")+ylab("Latitude")+ggtitle("Most Dangerous Car Make by State")
+```
+
+The most dangerous vehicle in each state was determined by the number of severe injuries sustained in car accidents based on each car make. The most dangerous car makes seemed to be 20, 12, 49, and 37, with 20 and 12 having been the most dangerous in the most amount of states. The East coast could have more cars of makes 37 and 49 than the rest of the US as those were the most dangerous vehicles in many of the East coast states. 
+
 ## Question 5
 ```{r}
-acc_pr <- full_join(acc, pr)
+acc_pr <- full_join(acc, per)
 head(acc_pr)
 ```
 
