@@ -21,7 +21,7 @@ str(per)
 ```
 
 
-## 6
+## 7
 ```{r}
 # Variables I'll need: acc- County, Fatals
 
@@ -52,4 +52,29 @@ countycombine %>% ggplot(aes(x=long,y=lat))+geom_polygon(aes(group = group, fill
 
 ```
 
+
+## 8
+
+```{r fig.width=11,fig.height=11}
+#Seasons, winter = 1, spring = 2, summer = 3, fall = 4
+acc <- 
+  mutate(acc, SEASON = ifelse(MONTH %in% 7:11,'f',
+        ifelse(MONTH %in% 3:5,'p', 
+          ifelse(MONTH %in% 6:8,'s','w'))));
+
+acc %>% filter(SEASON == 's' | SEASON == 'w') %>%
+  ggplot(aes(x=SEASON, weight = FATALS)) + geom_bar()+xlab("Season")+ylab("fatalities")+ggtitle("Fatalities in Summer vs Winter In Each State")
+
+str(GLC)
+GLC$`State Code` <- as.numeric(GLC$`State Code`)
+GLCUnique <- GLC %>% select('State Name','State Code') %>% distinct()
+GLCUnique
+withNames <- acc  %>% select(FATALS, SEASON, STATE) %>%left_join(GLCUnique, by=c(STATE = 'State Code'))
+str(withNames)
+str(acc)
+
+withNames %>% filter(SEASON == 's' | SEASON == 'w') %>%
+  ggplot(aes(x=SEASON, weight = FATALS)) + geom_bar() + facet_wrap( ~ `State Name`, scales = "free_y")+xlab("Season")+ylab("fatalities")+ggtitle("Fatalities in Summer vs Winter In Each State")
+
+```
 

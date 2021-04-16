@@ -105,3 +105,30 @@ countycombine %>% ggplot(aes(x=long,y=lat))+geom_polygon(aes(group = group, fill
 From this graph we can see that areas with a smaller counties tend to have smaller fatality counts. In following with this western look to have a higher total fatalities in general than counties in the middle and east of the country. One explanation for this could be the mountainous regions out west or the fact that highways may have higher fatalities than cities due to a longer response time from emergency vehicles. 
 
 
+## 8
+
+```{r}
+#Seasons, winter = 1, spring = 2, summer = 3, fall = 4
+acc <- 
+  mutate(acc, SEASON = ifelse(MONTH %in% 7:11,'f',
+        ifelse(MONTH %in% 3:5,'p', 
+          ifelse(MONTH %in% 6:8,'s','w'))));
+
+acc %>% filter(SEASON == 's' | SEASON == 'w') %>%
+  ggplot(aes(x=SEASON, weight = FATALS)) + geom_bar()+xlab("Season")+ylab("fatalities")+ggtitle("Fatalities in Summer vs Winter In Each State")
+
+
+GLCUnique <- GLC %>% select('State Name','State Code') %>% distinct()
+withNames <- acc  %>% select(FATALS, SEASON, STATE) %>%left_join(GLCUnique, by=c(STATE = 'State Code'))
+```
+
+In this figure we can see there are over twice as many fatalities in the winter as there are in the summer. This makes sense as driving conditions are often worse in the winter months as well. 
+
+```{r fig.width=11,fig.height=11}
+
+withNames %>% filter(SEASON == 's' | SEASON == 'w') %>%
+  ggplot(aes(x=SEASON, weight = FATALS)) + geom_bar() + facet_wrap( ~ `State Name`, scales = "free_y")+xlab("Season")+ylab("fatalities")+ggtitle("Fatalities in Summer vs Winter In Each State")
+
+```
+
+When we look at each state individually we see they largely follow the same pattern as the country at large. Several states have a smaller difference between the winter and summer months than the countries total. Only one state reverses the pattern and that is Wyoming which has over twice as many fatalities in the summer as in the winter.
