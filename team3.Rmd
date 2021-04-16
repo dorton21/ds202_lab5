@@ -33,7 +33,7 @@ head(mostDang)
 
 ## Question 4
 ```{r}
-GLC <- readxl::read_xlsx('C://Users//caitl//Documents//ds202_lab5//GLC.xlsx')
+GLC <- readxl::read_xlsx('GLC.xlsx')
 str(GLC)
 
 GLC$`State Code` <- as.numeric(GLC$`State Code`)
@@ -81,3 +81,27 @@ ggplot(acc_pr, aes(HOUR)) + geom_bar(width=0.5, fill="blue")
 
 ggplot(acc_pr, aes(SEX)) + geom_bar()
 ```
+
+
+## 7
+```{r}
+# Variables I'll need: acc- County, Fatals
+
+fatalsByCounty <- acc %>% select('FATALS','COUNTY') %>% group_by(COUNTY) %>%summarize(totalFat = sum(FATALS))
+
+GLC$'County Code' <- as.numeric(GLC$'County Code')
+GLC$`County Name` <- tolower(as.character(GLC$`County Name`))
+
+updatedFatalities <- GLC %>% left_join(fatalsByCounty, by=c('County Code'='COUNTY'))
+
+county <-map_data("county")
+
+countycombine<- county %>% right_join(updatedFatalities, by = c('subregion'='County Name')) %>% select('subregion','long','lat','group','order','region', 'totalFat')
+
+countycombine %>% ggplot(aes(x=long,y=lat))+geom_polygon(aes(group = group, fill = totalFat), color = "black")+coord_map()+ggtitle("Total Fatalities Per County")+labs(color="Fatalities")
+
+```
+
+From this graph we can see that areas with a smaller counties tend to have smaller fatality counts. In following with this western look to have a higher total fatalities in general than counties in the middle and east of the country. One explanation for this could be the mountainous regions out west or the fact that highways may have higher fatalities than cities due to a longer response time from emergency vehicles. 
+
+

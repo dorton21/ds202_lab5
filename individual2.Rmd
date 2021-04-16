@@ -1,0 +1,55 @@
+---
+title: "Lab 5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(ggrepel)
+
+library(lubridate)
+library(plotly)
+acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
+per <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+str(acc)
+str(per)
+```
+
+
+## 6
+```{r}
+# Variables I'll need: acc- County, Fatals
+
+fatalsByCounty <- acc %>% select('FATALS','COUNTY') %>% group_by(COUNTY) %>%summarize(totalFat = sum(FATALS))
+str(fatalsByCounty)
+GLC <- readxl::read_xlsx('GLC.xlsx')
+GLC$'County Code' <- as.numeric(GLC$'County Code')
+GLC$`County Name` <- tolower(as.character(GLC$`County Name`))
+
+updatedFatalities <- GLC %>% left_join(fatalsByCounty, by=c('County Code'='COUNTY'))
+str(updatedFatalities)
+
+county <-map_data("county")
+summary(county)
+str(county)
+county$subregion <- as.character(county$subregion)
+county %>% ggplot(aes(x=long, y=lat))+geom_polygon(aes(group=group),color='pink')
+
+
+
+countycombine<- county %>% right_join(updatedFatalities, by = c('subregion'='County Name')) %>% select('subregion','long','lat','group','order','region', 'totalFat')
+str(countycombine)
+
+countycombine %>% ggplot(aes(x=long,y=lat))+geom_polygon(aes(group = group, fill = totalFat), color = "black")
+
+
+
+
+```
+
+
